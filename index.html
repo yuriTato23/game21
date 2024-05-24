@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<!<!-- Lisset Ripoll -->
+<html>
+    <head>
+        <title>21</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script>
+
+            //global variables 
+            var dealerSum = 0;
+            var playerSum = 0;
+            var cardDeck = []; //card allocation 
+            var hidden, second;
+
+            //Generate image for player
+            function displayCard(card)
+            {
+                var path = "<img src=\"./cards/" + card + ".png\">";
+                document.getElementById('pCards').innerHTML += path;
+            }
+
+            //Generate image for dealer
+            function displayDCard(card)
+            {
+                var path = "<img src=\"./cards/" + card + ".png\">";
+                document.getElementById('dCards').innerHTML += path;
+            }
+            //flip dealers hidden card
+            function flipCard() {
+
+                document.getElementById('dCards').innerHTML = "";
+                displayDCard(hidden);
+                displayDCard(second);
+            }
+            //Reset the windows
+            function reset()
+            {
+                //clearScores
+                playerSum =0;
+                dealerSum =0;
+                document.getElementById('result').innerHTML = "";
+                document.getElementById('pScore').innerHTML = "";
+                document.getElementById('dScore').innerHTML = "";
+                document.body.style.backgroundImage = "url('chip.webp')";
+                
+                //Enable buttons again
+                document.getElementById("hit").disabled = false;
+                document.getElementById("stay").disabled = false;
+                //clear cards imgs
+                document.getElementById('pCards').innerHTML = "";
+                document.getElementById('dCards').innerHTML = "";
+                //Empty the deck to start again
+                for (var i = cardDeck.length; i >= 0; i--)
+                    cardDeck.pop(i);
+            }
+
+            //new deck
+            function newGame()
+            {
+                reset();
+                var faceValues = ['a', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'j', 'q', 'k'];
+                var faces = ['c', 'd', 'h', 's'];
+
+                //make a deck of cards
+                for (var i = 0; i < faces.length; i++)
+                {
+                    for (var j = 0; j < faceValues.length; j++)
+                        cardDeck.push(faceValues[j] + "" + faces[i]);
+                }
+
+                //Shuffle cards / random index swap
+                for (i = 0; i < cardDeck.length; i++)
+                {
+                    var j = parseInt(Math.random() * cardDeck.length);
+                    var temp = cardDeck[i];
+                    cardDeck[i] = cardDeck[j];
+                    cardDeck[j] = temp;
+                }
+                begin();
+            }
+            //start the game 
+            function begin()
+            {
+                var card, dcard;
+                for (var i = 0; i < 2; i++) { //deal cards to the player
+                    card = cardDeck.pop();
+                    displayCard(card);
+                    playerSum += value(card);
+                }
+                document.getElementById('pScore').innerHTML = playerSum; // player score
+
+                for (var i = 0; i < 2; i++) { //deal cards to the dealer
+
+                    dcard = cardDeck.pop();
+                    dealerSum += value(dcard);
+
+                    if (i !== 0) {
+                        displayDCard(dcard);
+                        second = dcard;
+                    } else {
+                        realcardvalue = value(dcard);
+                        hidden = dcard;
+                        displayDCard('back');
+                    }
+                }
+            }
+            function whoWins() {
+
+                if (playerSum > 21 && dealerSum < 22) {
+                    document.getElementById('result').innerHTML += " You Lose ";
+                }
+                else if (dealerSum > 21 && playerSum < 22) {
+                    document.body.style.backgroundImage = "url('firework.gif')";
+                    document.getElementById('result').innerHTML += " You Win! ";
+                }
+                
+                else if ((dealerSum > playerSum && dealerSum < 22) && 
+                        (document.getElementById("hit").disabled === true))
+                {
+                    document.getElementById('result').innerHTML += " You Lose ";
+                } 
+                else if (dealerSum < playerSum && playerSum < 22)
+                {
+//                    document.table.style.backgroundImage = "url('firework.gif')";
+                    document.body.style.backgroundImage = "url('firework.gif')";
+                    document.getElementById('result').innerHTML += " You Win! ";
+                } 
+                else if (playerSum > 21 && dealerSum > 21){
+                    document.getElementById('result').innerHTML += " No one wins this round ";
+                }
+                else if(playerSum === dealerSum) {
+                    document.getElementById('result').innerHTML += " It's a Draw ";
+                }
+                document.getElementById("stay").disabled = true;
+            }
+
+            //card drawing with no repetitions
+            function drawCard()
+            {
+                var card = cardDeck.pop();
+                if (card !== undefined && playerSum < 22) {
+                    card = cardDeck.pop();
+                    displayCard(card);
+                    playerSum += value(card);
+                    document.getElementById('pScore').innerHTML = playerSum;
+                } else
+                    cardDeck.push(card);
+                if ( playerSum === 21 || playerSum > 21 )
+                    stay();
+            }
+
+            function stay()
+            {
+                document.getElementById("hit").disabled = true;
+                document.getElementById('dScore').innerHTML = dealerSum;
+                if (dealerSum !== 0) {
+                    flipCard();
+                    var dcard = cardDeck.pop();
+                    
+                    while (dealerSum < 17) {
+                        dcard = cardDeck.pop();
+                        displayDCard(dcard);
+                        dealerSum += value(dcard);
+                        document.getElementById('dScore').innerHTML = dealerSum;
+                    }
+                    document.getElementById("stay").disabled = true;
+                    whoWins();
+                }
+            }
+            //assign a value based on card drawn
+            function value(card)
+            {
+                if (card.charAt(0) === 'a') {
+                    return 11;
+                } else if (card.charAt(0) === 'j'
+                        || card.charAt(0) === 'q'
+                        || card.charAt(0) === 'k')
+                    return 10;
+                else if (card.charAt(0) === '1')
+                    return 10;
+                else
+                    return parseInt(card.charAt(0));
+            }
+        </script>
+        <style>
+            body{
+                margin-top: 20px;
+                background-image: url(chip.webp);
+                
+                background-repeat: repeat;
+                background-size:100%;
+            }
+            table{
+                background-color: #000000;
+                font-family: Georgia, sans-serif;
+                text-align: center;
+                margin:auto;
+            }
+            
+            img{
+                height:200px;
+                width:150px;
+                margin: 1px;
+                box-shadow: 2px 2px 2px;
+            }
+            .button{
+                width: 100px;
+                height: 50px;
+                font-weight: bold;
+                border: 1px solid #000000;
+                font-family: sans-serif;
+            }
+            .headers{
+                color: #67abf1;
+                font-size: 2em;
+                padding: 1px 1px 1px;
+                text-shadow: 1px 1px 1px white;
+                
+            }
+            #result{
+                color: yellow;
+                font-size: 2.5em;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+    <body id ="bod">
+        <table>
+            <tr><td id ="result"></td></tr>
+            <tr>
+                <th class="headers" >Dealer &nbsp;<span id= 'dScore' ></span></th>
+            </tr>
+            <tr><td id="dCards"></td></tr>
+            <tr><th class="headers" >You &nbsp;<span id= 'pScore' ></span></th></tr>
+            <tr><td id="pCards"></td></tr>
+            <tr><td>
+                    <button class="button" id="hit" onclick= "drawCard()" > HIT </button>
+                    <button class="button" id="stay" onclick = "stay()" > STAY </button>
+                    <button class="button" id ="deck" onclick= "newGame()" > NEW GAME </button>
+            </td></tr> 
+        </table>
+    </body>
+</html>
